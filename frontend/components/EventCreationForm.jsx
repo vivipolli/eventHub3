@@ -1,26 +1,35 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { ipfsToHttp } from '@/utils/ipfs';
+import { saveEvent } from '@/services/eventService';
 
 export default function EventCreationForm() {
     const router = useRouter();
+    const { userData } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [eventData, setEventData] = useState({
+        id: Date.now().toString(), // Convertido para string
         title: '',
         description: '',
         date: '',
         time: '',
         location: '',
-        category: 'Technology',
-        price: 0,
+        category: 'DeFi',
+        price: '0', // Inicializado como string
         isPaid: false,
-        spotsAvailable: 100,
+        spotsAvailable: '100', // Inicializado como string
         organizer: {
-            name: '',
-            id: ''
+            name: userData?.profile?.name || '',
+            id: userData?.addresses?.mainnet || '',
+            wallet: userData?.addresses?.mainnet || ''
         },
         status: 'upcoming',
-        color: 'primary'
+        createdAt: new Date().toISOString(),
+        ticketType: 'Standard',
+        totalSupply: '100', // Inicializado como string
+        mintPrice: '0', // Inicializado como string
     });
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -29,14 +38,22 @@ export default function EventCreationForm() {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        if (name === 'price') {
-            // Se o preço for maior que 0, marcar como pago
-            const isPaid = parseFloat(value) > 0;
-            setEventData({
-                ...eventData,
-                [name]: parseFloat(value),
-                isPaid
-            });
+        if (type === 'number') {
+            // Garantir que valores numéricos sejam strings válidas
+            const numValue = value === '' ? '0' : value;
+            if (name === 'price') {
+                const isPaid = parseFloat(numValue) > 0;
+                setEventData({
+                    ...eventData,
+                    [name]: numValue,
+                    isPaid
+                });
+            } else {
+                setEventData({
+                    ...eventData,
+                    [name]: numValue
+                });
+            }
         } else if (type === 'checkbox') {
             setEventData({
                 ...eventData,
@@ -88,7 +105,40 @@ export default function EventCreationForm() {
             // Criar FormData para enviar imagem e dados do evento
             const formData = new FormData();
             formData.append('image', image);
-            formData.append('eventData', JSON.stringify(eventData));
+
+            // Preparar dados completos do evento para os metadados
+            const completeEventData = {
+                ...eventData,
+                datetime: `${eventData.date}T${eventData.time}`,
+                organizer: {
+                    ...eventData.organizer,
+                    name: userData?.profile?.name || eventData.organizer.name,
+                    wallet: userData?.addresses?.mainnet || eventData.organizer.wallet
+                },
+                properties: {
+                    eventId: eventData.id.toString(),
+                    eventType: 'NFT Ticket',
+                    venue: eventData.location,
+                    ticketType: eventData.ticketType,
+                    maxSupply: eventData.totalSupply,
+                    mintPrice: eventData.price,
+                    blockchain: 'Stacks',
+                    standard: 'SIP-009',
+                    createdAt: eventData.createdAt
+                },
+                attributes: [
+                    { trait_type: 'Event Date', value: eventData.date },
+                    { trait_type: 'Event Time', value: eventData.time },
+                    { trait_type: 'Location', value: eventData.location },
+                    { trait_type: 'Category', value: eventData.category },
+                    { trait_type: 'Price', value: eventData.price.toString() },
+                    { trait_type: 'Ticket Type', value: eventData.ticketType },
+                    { trait_type: 'Status', value: eventData.status },
+                    { trait_type: 'Available Spots', value: eventData.spotsAvailable.toString() }
+                ]
+            };
+
+            formData.append('eventData', JSON.stringify(completeEventData));
 
             // Enviar para a API
             const response = await fetch('/api/upload', {
@@ -102,16 +152,21 @@ export default function EventCreationForm() {
             }
 
             const data = await response.json();
+            console.log('Metadata URL:', ipfsToHttp(data.metadataUrl));
+            console.log('Image URL:', ipfsToHttp(data.imageUrl));
 
-            // Salvar o evento no banco de dados (simulado)
-            // Em um app real, você enviaria os dados para sua API de backend
-            console.log('Event created with IPFS metadata:', data);
+            // Opcional: Abrir os links automaticamente
+            if (data.success) {
+                // Salvar evento com metadados
+                const savedEvent = await saveEvent(
+                    completeEventData,
+                    data.metadataUrl,
+                    data.imageUrl
+                );
 
-            toast.success('Event created successfully!', { id: 'event-creation' });
-
-            // Redirecionar para a página do evento
-            // Em um app real, você redirecionaria para o evento recém-criado
-            router.push('/my-profile?tab=events');
+                toast.success('Event created successfully!', { id: 'event-creation' });
+                router.push(`/events/${savedEvent.id}`);
+            }
 
         } catch (error) {
             console.error('Error creating event:', error);
@@ -122,13 +177,12 @@ export default function EventCreationForm() {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-                <h2 className="text-xl font-bold">Event Details</h2>
+        <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-6">
 
                 {/* Título do evento */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Event Title
                     </label>
                     <input
@@ -136,14 +190,16 @@ export default function EventCreationForm() {
                         name="title"
                         value={eventData.title}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 
+                                 focus:ring-2 focus:ring-primary/20 focus:border-primary 
+                                 hover:border-primary/50 transition-all duration-300"
                         required
                     />
                 </div>
 
                 {/* Descrição */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Description
                     </label>
                     <textarea
@@ -151,15 +207,17 @@ export default function EventCreationForm() {
                         value={eventData.description}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 
+                                 focus:ring-2 focus:ring-primary/20 focus:border-primary 
+                                 hover:border-primary/50 transition-all duration-300"
                         required
                     />
                 </div>
 
                 {/* Data e Hora */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="group">
+                        <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                             Date
                         </label>
                         <input
@@ -167,12 +225,14 @@ export default function EventCreationForm() {
                             name="date"
                             value={eventData.date}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 
+                                     focus:ring-2 focus:ring-primary/20 focus:border-primary 
+                                     hover:border-primary/50 transition-all duration-300"
                             required
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="group">
+                        <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                             Time
                         </label>
                         <input
@@ -180,7 +240,9 @@ export default function EventCreationForm() {
                             name="time"
                             value={eventData.time}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 
+                                     focus:ring-2 focus:ring-primary/20 focus:border-primary 
+                                     hover:border-primary/50 transition-all duration-300"
                             required
                         />
                     </div>
@@ -202,29 +264,35 @@ export default function EventCreationForm() {
                 </div>
 
                 {/* Categoria */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Category
                     </label>
                     <select
                         name="category"
                         value={eventData.category}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 
+                                 focus:ring-2 focus:ring-primary/20 focus:border-primary 
+                                 hover:border-primary/50 transition-all duration-300"
                         required
                     >
-                        <option value="Technology">Technology</option>
-                        <option value="Business">Business</option>
-                        <option value="Arts">Arts</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Education">Education</option>
+                        <option value="DeFi">DeFi</option>
+                        <option value="NFTs">NFTs & Digital Art</option>
+                        <option value="DAOs">DAOs & Governance</option>
+                        <option value="Blockchain">Blockchain Development</option>
+                        <option value="Metaverse">Metaverse & Gaming</option>
+                        <option value="Web3">Web3 & dApps</option>
+                        <option value="Crypto">Cryptocurrency</option>
+                        <option value="Security">Security & Privacy</option>
+                        <option value="Community">Community & Social</option>
                         <option value="Other">Other</option>
                     </select>
                 </div>
 
                 {/* Preço */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Price (STX)
                     </label>
                     <input
@@ -234,12 +302,12 @@ export default function EventCreationForm() {
                         onChange={handleChange}
                         min="0"
                         step="0.1"
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 
+                                 focus:ring-2 focus:ring-primary/20 focus:border-primary 
+                                 hover:border-primary/50 transition-all duration-300"
                         required
                     />
-                    <p className="mt-1 text-sm text-gray-500">
-                        Set to 0 for free events
-                    </p>
+                    <p className="mt-2 text-sm text-gray-500">Set to 0 for free events</p>
                 </div>
 
                 {/* Vagas disponíveis */}
@@ -274,29 +342,29 @@ export default function EventCreationForm() {
                 </div>
 
                 {/* Imagem do evento */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Event Image
                     </label>
-                    <div className="mt-1 flex items-center">
+                    <div className="mt-1">
                         <input
                             type="file"
                             accept="image/*"
                             onChange={handleImageChange}
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 
+                                     focus:ring-2 focus:ring-primary/20 focus:border-primary 
+                                     hover:border-primary/50 transition-all duration-300"
                             required
                         />
                     </div>
                     {imagePreview && (
-                        <div className="mt-4">
-                            <p className="text-sm text-gray-500 mb-2">Preview:</p>
-                            <div className="w-full h-48 rounded-xl overflow-hidden">
-                                <img
-                                    src={imagePreview}
-                                    alt="Event preview"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
+                        <div className="mt-4 relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-xl"></div>
+                            <img
+                                src={imagePreview}
+                                alt="Event preview"
+                                className="w-full h-48 object-cover rounded-xl"
+                            />
                         </div>
                     )}
                 </div>
@@ -306,7 +374,9 @@ export default function EventCreationForm() {
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                    className={` cursor-pointer px-8 py-3 bg-primary text-white rounded-xl 
+                              hover:bg-primary-dark transition-all duration-300 
+                              hover:box-glow-primary ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
                         }`}
                 >
                     {isSubmitting ? 'Creating Event...' : 'Create Event'}

@@ -8,8 +8,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { mkdir } from 'fs/promises'
 
 // Configurações do Pinata
-const PINATA_API_KEY = process.env.PINATA_API_KEY
-const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
+const PINATA_API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY
+const PINATA_SECRET_API_KEY = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY
 
 // Diretório temporário para armazenar arquivos
 const TEMP_DIR = join(process.cwd(), 'tmp')

@@ -1,5 +1,8 @@
-import Link from 'next/link';
+'use client';
 
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { getAllEvents } from '@/services/eventService';
 const categories = [
     { id: 'all', name: 'All Events', count: 42 },
     { id: 'tech', name: 'Technology', count: 15 },
@@ -8,50 +11,14 @@ const categories = [
     { id: 'gaming', name: 'Gaming', count: 7 }
 ];
 
-const events = [
-    {
-        id: 1,
-        title: 'Web3 Summit 2024',
-        date: 'Mar 15-17, 2024',
-        location: 'New York, NY',
-        category: 'Technology',
-        price: 0.5,
-        isPaid: true,
-        attendees: 1200,
-        image: '/images/event1.jpg',
-        organizer: {
-            name: 'Web3 Foundation',
-            id: 'web3foundation'
-        },
-        status: 'upcoming',
-        color: 'primary',
-        description: 'Join us for the biggest Web3 event of the year. Get your NFT ticket and be part of the future.',
-        spotsLeft: 300,
-        gradient: 'from-primary to-primary-dark'
-    },
-    {
-        id: 2,
-        title: 'Blockchain Workshop',
-        date: 'Mar 20, 2024',
-        location: 'Virtual Event',
-        category: 'Technology',
-        price: 0,
-        isPaid: false,
-        attendees: 500,
-        image: '/images/event2.jpg',
-        organizer: {
-            name: 'Tech Community DAO',
-            id: 'techcommunity'
-        },
-        status: 'upcoming',
-        color: 'secondary',
-        description: 'Learn the basics of blockchain technology in this free workshop. Register now to secure your spot!',
-        spotsLeft: 100,
-        gradient: 'from-secondary to-secondary-dark'
-    }
-];
-
 export default function EventsPage() {
+    const [events, setEvents] = useState([]);
+
+    useEffect(() => {
+        const storedEvents = getAllEvents();
+        setEvents(storedEvents);
+    }, []);
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Hero Section */}

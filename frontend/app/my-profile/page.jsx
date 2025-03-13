@@ -5,22 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { toast, Toaster } from 'react-hot-toast';
-import { getUserNFTs } from '@/services/stacksService';
+import { getUserNFTs, getNftsForAddress } from '@/services/stacksService';
 import NFTCard from '@/components/NFTCard';
-
-// Sample user data - in a real app, this would come from your auth context
-const userData = {
-    name: 'Alex Turner',
-    username: '@alexturner',
-    bio: 'Blockchain enthusiast | Event organizer | NFT collector',
-    email: 'alex@example.com',
-    location: 'New York, NY',
-    website: 'alexturner.eth',
-    walletAddress: '0x1234...5678',
-    isOrganizer: true,
-    avatar: '/images/avatar.jpg',
-    coverImage: '/images/cover.jpg'
-};
+import NftCard from '@/components/nft/NftCard';
 
 const tickets = [
     {
@@ -64,6 +51,8 @@ export default function MyProfilePage() {
     });
     const [userNFTs, setUserNFTs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [nfts, setNfts] = useState([]);
+    const [userAddress, setUserAddress] = useState('');
 
     // Buscar NFTs quando o componente montar
     useEffect(() => {
@@ -85,11 +74,41 @@ export default function MyProfilePage() {
         }
     }, [userData]);
 
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (userData?.addresses?.stx?.[0]?.address) {
+                const address = userData.addresses.stx[0].address;
+
+                try {
+                    setIsLoading(true);
+                    // Buscar NFTs do usuário
+                    const userNfts = await getNftsForAddress(address);
+
+                    // Filtrar apenas NFTs do nosso contrato
+                    const eventNfts = userNfts.filter(nft =>
+                        nft.asset_identifier.includes('ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK.nft-ticket::event-ticket')
+                    );
+
+                    setNfts(eventNfts);
+                    setIsLoading(false);
+                } catch (error) {
+                    console.error('Error fetching NFTs:', error);
+                    toast.error('Erro ao carregar NFTs');
+                    setIsLoading(false);
+                }
+            } else {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [userData]);
+
     // Função para exibir endereço truncado
     const truncateAddress = (address) => {
-        if (!address) return ''
-        return `${address.slice(0, 6)}...${address.slice(-4)}`
-    }
+        if (!address) return '';
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -150,6 +169,17 @@ export default function MyProfilePage() {
             toast.error('Failed to confirm presence');
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <h1 className="text-3xl font-bold mb-6">Meu Perfil</h1>
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -417,10 +447,16 @@ export default function MyProfilePage() {
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                                 <p className="mt-4 text-gray-600">Loading your NFTs...</p>
                             </div>
-                        ) : userNFTs.length > 0 ? (
+                        ) : nfts.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {userNFTs.map(nft => (
-                                    <NFTCard key={nft.id} nft={nft} />
+                                {nfts.map((nft, index) => (
+                                    <NftCard
+                                        key={index}
+                                        tokenId={nft.value.repr.replace('u', '')}
+                                        contractAddress="ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK"
+                                        contractName="nft-ticket"
+                                        metadata={nft.value.repr}
+                                    />
                                 ))}
                             </div>
                         ) : (

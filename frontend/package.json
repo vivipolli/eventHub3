@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@stacks/common": "^7.0.2",
     "@stacks/connect": "^8.1.6",
+    "@stacks/network": "^7.0.2",
     "@stacks/transactions": "^7.0.5",
     "axios": "^1.8.3",
     "form-data": "^4.0.2",

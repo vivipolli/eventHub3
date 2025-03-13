@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -24,15 +25,15 @@ export default function Header() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
-            <div className="relative h-10 w-10 mr-2">
-              <div className="absolute inset-0 bg-primary rounded-full opacity-20"></div>
-              <div className="absolute inset-1 bg-white rounded-full flex items-center justify-center">
-                <span className="text-primary font-bold text-xl">
-                  E3
-                </span>
-              </div>
+            <div className="relative mr-2">
+              <Image
+                src="/logo.png"
+                alt="Event3 Logo"
+                width={140}
+                height={140}
+                className="object-contain"
+              />
             </div>
-            <span className="text-foreground font-bold text-xl">Event3</span>
           </Link>
         </div>
 

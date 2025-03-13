@@ -1,181 +1,221 @@
-import { StacksTestnet } from '@stacks/network'
-import {
-  principalCV,
-  uintCV,
-  cvToValue,
-  serializeCV,
-} from '@stacks/transactions'
+// Simplificado para usar apenas fetch API sem dependências externas
 
-// Configurações do contrato
-const CONTRACT_ADDRESS = 'ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK'
-const CONTRACT_NAME = 'nft-ticket'
-const NETWORK = new StacksTestnet()
+// Configurações da API
+const API_BASE_URL = 'https://api.testnet.hiro.so'
 
 /**
- * Executa uma chamada de função somente leitura no contrato
- * @param {string} functionName Nome da função
- * @param {Array} functionArgs Argumentos da função
- * @returns {Promise<any>} Resultado da chamada
+ * Função para obter NFTs de um endereço
+ * @param {string} address - Endereço Stacks
+ * @returns {Promise<Array>} - Lista de NFTs
  */
-async function callReadOnlyFunction(functionName, functionArgs = []) {
+export async function getNftsForAddress(address) {
   try {
-    // Construir a URL para a chamada da função
-    const url = NETWORK.getReadOnlyFunctionCallApiUrl(
-      CONTRACT_ADDRESS,
-      CONTRACT_NAME,
-      functionName
+    const response = await fetch(
+      `${API_BASE_URL}/extended/v1/tokens/nft/holdings?principal=${address}&limit=50`
     )
 
-    // Serializar os argumentos da função
-    const args = functionArgs.map(arg => {
-      return {
-        type: arg.type,
-        value: serializeCV(arg).toString('hex'),
-      }
-    })
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
 
-    // Fazer a chamada HTTP
+    const data = await response.json()
+    return data.results || []
+  } catch (error) {
+    console.error('Error fetching NFTs:', error)
+    return []
+  }
+}
+
+/**
+ * Função para obter detalhes de uma NFT específica
+ * @param {string} contractAddress - Endereço do contrato
+ * @param {string} contractName - Nome do contrato
+ * @param {string|number} tokenId - ID do token
+ * @returns {Promise<Object|null>} - Detalhes da NFT
+ */
+export async function getNftDetails(contractAddress, contractName, tokenId) {
+  try {
+    // Construir a URL para a API de metadados do token
+    const url = `${API_BASE_URL}/v2/contracts/call-read/${contractAddress}/${contractName}/get-token-uri`
+
+    // Preparar o corpo da requisição
+    const body = {
+      sender: contractAddress,
+      arguments: [`0x${parseInt(tokenId).toString(16)}`], // Converter tokenId para hex
+    }
+
+    // Fazer a requisição
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        arguments: args,
-        sender: CONTRACT_ADDRESS,
-      }),
+      body: JSON.stringify(body),
     })
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      throw new Error(`API error: ${response.status}`)
     }
 
     const data = await response.json()
-    return data
+
+    // Extrair o URI dos metadados da resposta
+    let metadata = null
+    if (data.okay && data.result) {
+      // Decodificar o resultado (formato Clarity)
+      const resultHex = data.result.substr(2) // Remover '0x'
+      const resultBuffer = Buffer.from(resultHex, 'hex')
+      const resultString = resultBuffer.toString('utf8')
+
+      // Extrair o valor da string (formato Clarity)
+      const metadataMatch = resultString.match(/"([^"]+)"/)
+      metadata = metadataMatch ? metadataMatch[1] : null
+    }
+
+    return {
+      tokenId,
+      metadata,
+    }
   } catch (error) {
-    console.error(`Error calling function ${functionName}:`, error)
-    throw error
+    console.error('Error fetching NFT details:', error)
+    return null
   }
 }
 
 /**
- * Busca o último token ID do contrato NFT
- * @returns {Promise<number>} O último token ID
+ * Função para verificar o saldo de STX
+ * @param {string} address - Endereço Stacks
+ * @returns {Promise<Object>} - Saldo STX
  */
-export async function getLastTokenId() {
+export async function getStxBalance(address) {
   try {
-    const result = await callReadOnlyFunction('get-last-token-id', [])
+    const response = await fetch(
+      `${API_BASE_URL}/extended/v1/address/${address}/balances`
+    )
 
-    // Extrair o valor do resultado
-    if (result && result.value) {
-      // O valor está em formato hexadecimal, converter para número
-      return parseInt(result.value.value.hex.substr(2), 16)
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
     }
 
-    throw new Error('Invalid response format')
+    const data = await response.json()
+
+    return {
+      balance: parseInt(data.stx.balance),
+      locked: parseInt(data.stx.locked || '0'),
+    }
+  } catch (error) {
+    console.error('Error fetching STX balance:', error)
+    return { balance: 0, locked: 0 }
+  }
+}
+
+/**
+ * Função para verificar se um usuário possui uma NFT específica
+ * @param {string} userAddress - Endereço do usuário
+ * @param {string} contractAddress - Endereço do contrato
+ * @param {string} contractName - Nome do contrato
+ * @param {string|number} tokenId - ID do token
+ * @returns {Promise<boolean>} - True se o usuário possuir a NFT
+ */
+export async function checkNftOwnership(
+  userAddress,
+  contractAddress,
+  contractName,
+  tokenId
+) {
+  try {
+    // Construir a URL para a API de proprietário do token
+    const url = `${API_BASE_URL}/v2/contracts/call-read/${contractAddress}/${contractName}/get-owner`
+
+    // Preparar o corpo da requisição
+    const body = {
+      sender: userAddress,
+      arguments: [`0x${parseInt(tokenId).toString(16)}`], // Converter tokenId para hex
+    }
+
+    // Fazer a requisição
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    // Verificar se o proprietário é o usuário
+    if (data.okay && data.result) {
+      // Decodificar o resultado (formato Clarity)
+      const resultHex = data.result.substr(2) // Remover '0x'
+      const resultBuffer = Buffer.from(resultHex, 'hex')
+      const resultString = resultBuffer.toString('utf8')
+
+      // Extrair o endereço do proprietário (formato Clarity)
+      const ownerMatch = resultString.match(/'([^']+)/)
+      const owner = ownerMatch ? ownerMatch[1] : null
+
+      return owner === userAddress
+    }
+
+    return false
+  } catch (error) {
+    console.error('Error checking NFT ownership:', error)
+    return false
+  }
+}
+
+/**
+ * Função para obter o último ID de token do contrato
+ * @param {string} contractAddress - Endereço do contrato
+ * @param {string} contractName - Nome do contrato
+ * @returns {Promise<number|null>} - Último ID de token
+ */
+export async function getLastTokenId(contractAddress, contractName) {
+  try {
+    // Construir a URL para a API de último ID de token
+    const url = `${API_BASE_URL}/v2/contracts/call-read/${contractAddress}/${contractName}/get-last-token-id`
+
+    // Preparar o corpo da requisição
+    const body = {
+      sender: contractAddress,
+      arguments: [],
+    }
+
+    // Fazer a requisição
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    // Extrair o último ID de token da resposta
+    if (data.okay && data.result) {
+      // Decodificar o resultado (formato Clarity)
+      const resultHex = data.result.substr(2) // Remover '0x'
+      const resultBuffer = Buffer.from(resultHex, 'hex')
+      const resultString = resultBuffer.toString('utf8')
+
+      // Extrair o valor numérico (formato Clarity)
+      const idMatch = resultString.match(/u(\d+)/)
+      return idMatch ? parseInt(idMatch[1]) : null
+    }
+
+    return null
   } catch (error) {
     console.error('Error fetching last token ID:', error)
-    throw error
-  }
-}
-
-/**
- * Verifica o proprietário de um token específico
- * @param {number} tokenId ID do token
- * @returns {Promise<string>} Endereço do proprietário
- */
-export async function getTokenOwner(tokenId) {
-  try {
-    const result = await callReadOnlyFunction('get-owner', [uintCV(tokenId)])
-
-    // Extrair o endereço do proprietário do resultado
-    if (result && result.value && result.value.value) {
-      return result.value.value
-    }
-
-    throw new Error('Invalid response format')
-  } catch (error) {
-    console.error(`Error fetching owner for token ${tokenId}:`, error)
-    throw error
-  }
-}
-
-/**
- * Busca o URI de metadados de um token específico
- * @param {number} tokenId ID do token
- * @returns {Promise<string>} URI dos metadados
- */
-export async function getTokenUri(tokenId) {
-  try {
-    const result = await callReadOnlyFunction('get-token-uri', [
-      uintCV(tokenId),
-    ])
-
-    // Extrair o URI dos metadados do resultado
-    if (result && result.value && result.value.value) {
-      return result.value.value
-    }
-
-    throw new Error('Invalid response format')
-  } catch (error) {
-    console.error(`Error fetching URI for token ${tokenId}:`, error)
-    throw error
-  }
-}
-
-/**
- * Busca todos os NFTs pertencentes a um usuário
- * @param {string} userAddress Endereço do usuário
- * @returns {Promise<Array>} Lista de NFTs do usuário
- */
-export async function getUserNFTs(userAddress) {
-  try {
-    // Buscar o último token ID
-    const lastTokenId = await getLastTokenId()
-    console.log('Last token ID:', lastTokenId)
-
-    // Array para armazenar os NFTs do usuário
-    const userNFTs = []
-
-    // Verificar cada token para ver se pertence ao usuário
-    for (let tokenId = 1; tokenId <= lastTokenId; tokenId++) {
-      try {
-        const owner = await getTokenOwner(tokenId)
-
-        // Se o proprietário for o endereço do usuário, buscar os metadados
-        if (owner === userAddress) {
-          const uri = await getTokenUri(tokenId)
-
-          // Extrair informações do evento do URI (em produção, você buscaria mais dados)
-          const eventId = uri.split('-')[1] || tokenId
-
-          // Adicionar o NFT à lista
-          userNFTs.push({
-            id: tokenId,
-            tokenId: tokenId,
-            eventName: `Event #${eventId}`,
-            date: 'Mar 15-17, 2024',
-            location: 'New York, NY',
-            status: 'past',
-            ticketType: 'Standard',
-            contractAddress: `${CONTRACT_ADDRESS}.${CONTRACT_NAME}`,
-            metadata: uri,
-            color: 'primary',
-            nftMinted: true,
-            presenceConfirmed: true,
-          })
-        }
-      } catch (error) {
-        console.error(`Error processing token ${tokenId}:`, error)
-        // Continue com o próximo token
-        continue
-      }
-    }
-
-    console.log('Found NFTs:', userNFTs)
-    return userNFTs
-  } catch (error) {
-    console.error('Error fetching user NFTs:', error)
-    return []
+    return null
   }
 }
