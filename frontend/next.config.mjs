@@ -12,6 +12,10 @@ const nextConfig = {
   env: {
     // Você pode adicionar variáveis de ambiente públicas aqui se necessário
   },
+  // Configuração para domínios de imagens permitidos
+  images: {
+    domains: ['ipfs.io'],
+  },
 }
 
 export default nextConfig

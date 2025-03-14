@@ -12,6 +12,7 @@ export default function PaymentModal({ isOpen, onClose, event, onSuccess }) {
     const [transactionId, setTransactionId] = useState(null);
     const [paymentComplete, setPaymentComplete] = useState(false);
     const [error, setError] = useState(null);
+    const [metadataUri, setMetadataUri] = useState(null);
     const { userData, isAuthenticated } = useAuth();
 
     // Verificar se o usuário está autenticado quando o modal abre
@@ -167,14 +168,20 @@ export default function PaymentModal({ isOpen, onClose, event, onSuccess }) {
             const contractAddress = 'ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK';
             const contractName = 'nft-ticket';
 
-            // Criar um metadata simples
-            const metadataUri = `event-${event.id}`;
-            console.log('Using metadata:', metadataUri);
 
+            let uri = event.metadataUrl;
+
+            // Converter o formato ipfs:// para https://ipfs.io/ipfs/
+            if (uri.startsWith('ipfs://')) {
+                uri = uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
+                console.log('Converted metadata URI:', uri);
+            }
+
+            setMetadataUri(uri);
             toast.loading('Minting your NFT ticket...', { id: 'mint-toast' });
 
             // Chamar a API para fazer o mint no backend
-            console.log('Calling backend API for minting...');
+            console.log('Calling backend API for minting with URI:', uri);
             try {
                 const response = await fetch('/api/mint-nft', {
                     method: 'POST',
@@ -183,10 +190,11 @@ export default function PaymentModal({ isOpen, onClose, event, onSuccess }) {
                     },
                     body: JSON.stringify({
                         userAddress,
-                        metadataUri,
+                        metadataUri: uri,
                         contractAddress,
                         contractName,
-                        paymentTxId // Incluir o ID da transação de pagamento para referência
+                        paymentTxId,
+                        eventId: event.id
                     }),
                 });
 
@@ -207,7 +215,6 @@ export default function PaymentModal({ isOpen, onClose, event, onSuccess }) {
                 toast.error(`API error: ${apiError.message || 'Unknown error'}`, { id: 'mint-toast' });
                 setIsProcessing(false);
             }
-
         } catch (error) {
             console.error('Mint error:', error);
             toast.error('Failed to mint NFT ticket', { id: 'mint-toast' });

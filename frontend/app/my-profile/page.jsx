@@ -2,26 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { toast, Toaster } from 'react-hot-toast';
-import { getUserNFTs, getNftsForAddress } from '@/services/stacksService';
-import NFTCard from '@/components/NFTCard';
+import { getNftsForAddress } from '@/services/stacksService';
 import NftCard from '@/components/nft/NftCard';
+import { isValidIpfsUrl } from '@/utils/ipfs';
 
-const tickets = [
-    {
-        id: 1,
-        eventName: 'ETH Global 2024',
-        date: 'Mar 15-17, 2024',
-        location: 'New York, NY',
-        status: 'upcoming',
-        ticketType: 'VIP Access',
-        nftMinted: true,
-        color: 'primary'
-    },
-    // ... more tickets
-];
 
 const organizedEvents = [
     {
@@ -49,30 +35,9 @@ export default function MyProfilePage() {
         website: 'alexturner.eth',
         isOrganizer: true,
     });
-    const [userNFTs, setUserNFTs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [nfts, setNfts] = useState([]);
     const [userAddress, setUserAddress] = useState('');
-
-    // Buscar NFTs quando o componente montar
-    useEffect(() => {
-        if (userData?.address) {
-            const loadNFTs = async () => {
-                setIsLoading(true);
-                try {
-                    const nfts = await getUserNFTs(userData.address);
-                    setUserNFTs(nfts);
-                } catch (error) {
-                    console.error('Error loading NFTs:', error);
-                    toast.error('Failed to load your NFTs');
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-            loadNFTs();
-        }
-    }, [userData]);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -84,12 +49,7 @@ export default function MyProfilePage() {
                     // Buscar NFTs do usuário
                     const userNfts = await getNftsForAddress(address);
 
-                    // Filtrar apenas NFTs do nosso contrato
-                    const eventNfts = userNfts.filter(nft =>
-                        nft.asset_identifier.includes('ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK.nft-ticket::event-ticket')
-                    );
-
-                    setNfts(eventNfts);
+                    setNfts(userNfts);
                     setIsLoading(false);
                 } catch (error) {
                     console.error('Error fetching NFTs:', error);
@@ -449,15 +409,15 @@ export default function MyProfilePage() {
                             </div>
                         ) : nfts.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {nfts.map((nft, index) => (
-                                    <NftCard
-                                        key={index}
-                                        tokenId={nft.value.repr.replace('u', '')}
-                                        contractAddress="ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK"
-                                        contractName="nft-ticket"
-                                        metadata={nft.value.repr}
-                                    />
-                                ))}
+                                {nfts
+                                    .filter(nft => nft.tokenUri && isValidIpfsUrl(nft.tokenUri))
+                                    .map((nft, index) => (
+                                        <NftCard
+                                            key={nft.value.repr.replace('u', '')}
+                                            tokenUri={nft.tokenUri}
+                                            tx_id={nft.tx_id || nft.txid}
+                                        />
+                                    ))}
                             </div>
                         ) : (
                             <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-sm">

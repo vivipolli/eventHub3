@@ -6,3 +6,12 @@ export const ipfsToHttp = ipfsUrl => {
   return `https://gateway.pinata.cloud/ipfs/${hash}`
   // ou return `https://ipfs.io/ipfs/${hash}`;
 }
+
+export const isValidIpfsUrl = url => {
+  if (!url) return false
+
+  // Verifica se é uma URL IPFS válida
+  const ipfsPattern =
+    /^https:\/\/(ipfs\.io|gateway\.pinata\.cloud)\/ipfs\/[a-zA-Z0-9]+/
+  return ipfsPattern.test(url)
+}
