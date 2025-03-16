@@ -7,6 +7,7 @@ import { toast, Toaster } from 'react-hot-toast';
 import { getNftsForAddress } from '@/services/stacksService';
 import NftCard from '@/components/nft/NftCard';
 import { isValidIpfsUrl } from '@/utils/ipfs';
+import TicketCard from '@/components/tickets/TicketCard';
 
 
 const organizedEvents = [
@@ -46,7 +47,6 @@ export default function MyProfilePage() {
 
                 try {
                     setIsLoading(true);
-                    // Buscar NFTs do usuário
                     const userNfts = await getNftsForAddress(address);
 
                     setNfts(userNfts);
@@ -64,7 +64,6 @@ export default function MyProfilePage() {
         fetchUserData();
     }, [userData]);
 
-    // Função para exibir endereço truncado
     const truncateAddress = (address) => {
         if (!address) return '';
         return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -79,7 +78,6 @@ export default function MyProfilePage() {
     };
 
     const handleSave = () => {
-        // Here you would typically make an API call to update the profile
         console.log('Saving profile:', formData);
         setIsEditing(false);
     };
@@ -91,16 +89,12 @@ export default function MyProfilePage() {
                     async (position) => {
                         const { latitude, longitude } = position.coords;
 
-                        // Criar uma Promise que será resolvida após 2 segundos
                         const confirmPresence = new Promise((resolve, reject) => {
                             setTimeout(() => {
-                                // Simular sucesso - em produção, aqui seria a chamada real
                                 resolve();
-                                // Para simular erro, use: reject(new Error('Failed'));
                             }, 2000);
                         });
 
-                        // Usar toast.promise com a Promise
                         await toast.promise(
                             confirmPresence,
                             {
@@ -143,7 +137,6 @@ export default function MyProfilePage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Adicionar o componente Toaster */}
             <Toaster position="top-center" />
 
             {/* Profile Header */}
@@ -303,44 +296,16 @@ export default function MyProfilePage() {
                 {/* Tickets Tab */}
                 {activeTab === 'tickets' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {tickets.map(ticket => (
-                            <div key={ticket.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                                <div className={`bg-${ticket.color}/10 p-6`}>
-                                    <h3 className="font-semibold text-lg mb-2">{ticket.eventName}</h3>
-                                    <div className="flex items-center text-sm text-gray-600 mb-4">
-                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        {ticket.date}
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className={`px-3 py-1 bg-${ticket.color}/20 text-${ticket.color} rounded-full text-sm`}>
-                                            {ticket.ticketType}
-                                        </span>
-                                        {ticket.nftMinted && (
-                                            <span className="text-sm text-secondary">
-                                                NFT Minted ✓
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="p-6 border-t border-gray-100">
-                                    {ticket.status === 'upcoming' && (
-                                        <button
-                                            onClick={() => handleConfirmPresence(ticket.id)}
-                                            className="w-full py-2 bg-secondary text-white rounded-xl hover:bg-secondary-dark transition-colors"
-                                        >
-                                            Confirm Presence
-                                        </button>
-                                    )}
-                                    {ticket.status === 'past' && ticket.presenceConfirmed && (
-                                        <div className="text-center text-gray-600">
-                                            Presence Confirmed ✓
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                        {nfts
+                            .filter(nft => nft.tokenUri && isValidIpfsUrl(nft.tokenUri))
+                            .map((nft) => (
+                                <TicketCard
+                                    key={nft.value.repr.replace('u', '')}
+                                    tokenUri={nft.tokenUri}
+                                    tx_id={nft.tx_id || nft.txid}
+                                    onConfirmPresence={() => handleConfirmPresence(nft.value.repr.replace('u', ''))}
+                                />
+                            ))}
                     </div>
                 )}
 
@@ -401,17 +366,16 @@ export default function MyProfilePage() {
                 {activeTab === 'nfts' && (
                     <div className="space-y-6">
                         <h2 className="text-xl font-bold mb-6">Your NFT Collection</h2>
-
                         {isLoading ? (
                             <div className="text-center py-12">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                                 <p className="mt-4 text-gray-600">Loading your NFTs...</p>
                             </div>
-                        ) : nfts.length > 0 ? (
+                        ) : nfts.filter(nft => nft.tokenUri && isValidIpfsUrl(nft.tokenUri)).length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {nfts
                                     .filter(nft => nft.tokenUri && isValidIpfsUrl(nft.tokenUri))
-                                    .map((nft, index) => (
+                                    .map((nft) => (
                                         <NftCard
                                             key={nft.value.repr.replace('u', '')}
                                             tokenUri={nft.tokenUri}

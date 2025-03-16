@@ -14,7 +14,6 @@ export default function RegistrationModal({ isOpen, onClose, event, onSuccess })
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Lógica para salvar registro
             onSuccess();
             onClose();
         } catch (error) {

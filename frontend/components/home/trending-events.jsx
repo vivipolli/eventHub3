@@ -11,7 +11,7 @@ const events = [
         date: 'Dec 15, 2023',
         location: 'New York, NY',
         category: 'Technology',
-        image: '/images/event1.jpg', // You'll need to add these images to your public folder
+        image: '/images/event1.jpg',
         attendees: 1240,
         price: '$99',
         organizer: 'Tech Innovations Inc.',
@@ -222,17 +222,6 @@ export default function TrendingEvents() {
                             </svg>
                         </button>
                     )}
-                </div>
-
-                {/* Carousel Dots (optional) */}
-                <div className="flex justify-center mt-8 gap-2">
-                    {[...Array(Math.ceil(events.length / 3))].map((_, i) => (
-                        <button
-                            key={i}
-                            className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-primary' : 'bg-gray-300'}`}
-                            aria-label={`Go to slide ${i + 1}`}
-                        />
-                    ))}
                 </div>
             </div>
         </section>

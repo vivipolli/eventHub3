@@ -1,8 +1,11 @@
+import EventOrganizer from "./EventOrganizer";
+
 export default function EventSidebar({ event, handleRegister, handleShareClick, router }) {
     return (
         <div className="lg:w-96">
             <div className="sticky top-6 space-y-6">
                 {/* Ticket Card */}
+                <EventOrganizer organizer={event.organizer} />
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
                     <div className="space-y-4">
                         <div className="flex justify-between items-start">
@@ -13,8 +16,8 @@ export default function EventSidebar({ event, handleRegister, handleShareClick, 
                                 </p>
                             </div>
                             <span className={`px-3 py-1 rounded-full text-sm ${event.status === 'upcoming'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-gray-100 text-gray-800'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
                                 }`}>
                                 {event.status}
                             </span>
@@ -70,6 +73,8 @@ export default function EventSidebar({ event, handleRegister, handleShareClick, 
                         </button>
                     </div>
                 </div>
+
+
             </div>
         </div>
     );

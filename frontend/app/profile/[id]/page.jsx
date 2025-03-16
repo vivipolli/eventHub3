@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getUserNFTs } from '@/services/stacksService';
-import NFTCard from '@/components/NFTCard';
+import { getNftsForAddress } from '@/services/stacksService';
+import NftCard from '@/components/nft/NftCard';
+import { use } from 'react';
 
 // Sample user data - in a real app, this would come from an API
 const userData = {
@@ -25,37 +26,22 @@ const userData = {
     }
 };
 
-const collectedNFTs = [
-    {
-        id: 1,
-        eventName: 'ETH Global 2023',
-        date: 'Dec 15, 2023',
-        location: 'New York',
-        rarity: 'Legendary',
-        image: '/images/nft1.jpg',
-        color: 'primary'
-    },
-    // ... add more NFTs
-];
-
 export default function ProfilePage({ params }) {
+    const { id } = use(params);
     const [isFollowing, setIsFollowing] = useState(false);
-    const [activeTab, setActiveTab] = useState('collected'); // collected, organized, activity
+    const [activeTab, setActiveTab] = useState('collected');
     const [userNFTs, setUserNFTs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Buscar NFTs quando o componente montar
     useEffect(() => {
-        // Obter o endereço do usuário a partir dos parâmetros da URL
-        // Em produção, você buscaria o endereço do usuário com base no ID do perfil
-        const userAddress = params.id.startsWith('ST')
-            ? params.id
-            : 'ST2K82ZG0VDAZPMMRDXMPHZQP732Y2S7A004HTETD'; // Endereço padrão para teste
+        const userAddress = id.startsWith('ST')
+            ? id
+            : 'ST2K82ZG0VDAZPMMRDXMPHZQP732Y2S7A004HTETD';
 
         const loadNFTs = async () => {
             setIsLoading(true);
             try {
-                const nfts = await getUserNFTs(userAddress);
+                const nfts = await getNftsForAddress(userAddress);
                 setUserNFTs(nfts);
             } catch (error) {
                 console.error('Error loading NFTs:', error);
@@ -65,7 +51,11 @@ export default function ProfilePage({ params }) {
         };
 
         loadNFTs();
-    }, [params.id]);
+    }, [id]);
+
+    const isValidTokenUri = (uri) => {
+        return uri && (uri.startsWith('http://') || uri.startsWith('https://'));
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -207,10 +197,12 @@ export default function ProfilePage({ params }) {
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                                 <p className="mt-4 text-gray-600">Loading NFTs...</p>
                             </div>
-                        ) : userNFTs.length > 0 ? (
-                            userNFTs.map(nft => (
-                                <NFTCard key={nft.id} nft={nft} />
-                            ))
+                        ) : userNFTs.filter(nft => isValidTokenUri(nft.tokenUri)).length > 0 ? (
+                            userNFTs
+                                .filter(nft => isValidTokenUri(nft.tokenUri))
+                                .map(nft => (
+                                    <NftCard key={nft.value.repr.replace('u', '')} tokenUri={nft.tokenUri} tx_id={nft.tx_id || nft.txid} />
+                                ))
                         ) : (
                             <div className="col-span-3 text-center py-12 text-gray-500">
                                 No NFTs found for this user

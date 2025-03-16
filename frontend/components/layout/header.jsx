@@ -13,7 +13,6 @@ export default function Header() {
     setMobileMenuOpen(!mobileMenuOpen)
   }
 
-  // Função para exibir endereço truncado
   const truncateAddress = (address) => {
     if (!address) return ''
     return `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -22,7 +21,6 @@ export default function Header() {
   return (
     <header className="w-full py-4 px-6 bg-white border-b border-gray-100 shadow-sm">
       <div className="container mx-auto flex justify-between items-center">
-        {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
             <div className="relative mr-2">
@@ -37,7 +35,6 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <Link
             href="/events"
@@ -52,20 +49,13 @@ export default function Header() {
             NFT Marketplace
           </Link>
           <Link
-            href="/organizers"
+            href="/about"
             className="text-foreground hover:text-accent transition-colors"
           >
-            Organizers
-          </Link>
-          <Link
-            href="/community"
-            className="text-foreground hover:text-primary transition-colors"
-          >
-            Community
+            About Us
           </Link>
         </nav>
 
-        {/* Login/Register Buttons */}
         <div className="hidden md:flex items-center space-x-4">
           {isAuthenticated ? (
             <>
@@ -98,7 +88,6 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden text-foreground"
           onClick={toggleMobileMenu}
@@ -121,7 +110,6 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white py-4 px-6 shadow-lg animate-fadeIn">
           <nav className="flex flex-col space-y-4">
@@ -140,18 +128,11 @@ export default function Header() {
               NFT Marketplace
             </Link>
             <Link
-              href="/organizers"
+              href="/about"
               className="text-foreground hover:text-accent transition-colors py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Organizers
-            </Link>
-            <Link
-              href="/community"
-              className="text-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Community
+              About Us
             </Link>
             <div className="pt-4 flex flex-col space-y-2">
               {isAuthenticated ? (

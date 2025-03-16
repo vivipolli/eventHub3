@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function Hero() {
     return (
@@ -11,7 +10,6 @@ export default function Hero() {
 
             <div className="container mx-auto px-6 py-16 md:py-24">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                    {/* Left Content */}
                     <div className="space-y-8">
                         <div className="inline-block">
                             <span className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium">
@@ -20,9 +18,9 @@ export default function Hero() {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                            <span className="text-primary">Digital</span> Events with
-                            <span className="text-secondary"> NFT</span>
-                            <span className="text-accent"> Certificates</span>
+                            <span className="text-primary">Empower</span> Your Events with
+                            <span className="text-secondary"> Blockchain</span> and
+                            <span className="text-accent"> NFTs</span>
                         </h1>
 
                         <p className="text-lg text-gray-700 max-w-lg">
@@ -32,15 +30,12 @@ export default function Hero() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Link href="/register" className="px-8 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors box-glow-primary text-center font-medium">
-                                Get Started
-                            </Link>
-                            <Link href="/events" className="px-8 py-3 border-2 border-secondary text-secondary rounded-full hover:bg-secondary hover:text-white transition-colors text-center font-medium">
+                            <Link href="/events" className="px-8 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors box-glow-primary text-center font-medium">
                                 Explore Events
                             </Link>
+
                         </div>
 
-                        {/* Stats */}
                         <div className="grid grid-cols-3 gap-4 pt-6">
                             <div className="text-center">
                                 <p className="text-2xl md:text-3xl font-bold text-primary">1000+</p>
@@ -60,12 +55,10 @@ export default function Hero() {
                     {/* Right Content - 3D Illustration */}
                     <div className="relative h-[400px] md:h-[500px] flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center justify-center">
-                            {/* Circular glow effects */}
                             <div className="absolute w-64 h-64 bg-primary opacity-20 rounded-full blur-xl"></div>
                             <div className="absolute w-48 h-48 bg-secondary opacity-20 rounded-full blur-xl -translate-x-20 translate-y-20"></div>
                             <div className="absolute w-40 h-40 bg-accent opacity-20 rounded-full blur-xl translate-x-24 -translate-y-16"></div>
 
-                            {/* NFT Ticket Mockup */}
                             <div className="relative w-72 h-96 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 rotate-6 z-10">
                                 <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-r from-primary via-secondary to-accent rounded-t-2xl"></div>
                                 <div className="absolute top-1/4 left-0 right-0 flex justify-center">
@@ -85,23 +78,10 @@ export default function Hero() {
                                 </div>
                             </div>
 
-                            {/* Second NFT Ticket (decorative) */}
                             <div className="absolute w-72 h-96 bg-white rounded-2xl shadow-xl border border-gray-100 -rotate-6 -translate-x-8 translate-y-4">
                                 <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-r from-secondary via-accent to-primary rounded-t-2xl opacity-70"></div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Brands/Partners */}
-                <div className="mt-16 border-t border-gray-100 pt-8">
-                    <p className="text-center text-sm text-gray-500 mb-6">TRUSTED BY LEADING COMPANIES</p>
-                    <div className="flex flex-wrap justify-center gap-8 opacity-60">
-                        <div className="h-8 w-auto">Company 1</div>
-                        <div className="h-8 w-auto">Company 2</div>
-                        <div className="h-8 w-auto">Company 3</div>
-                        <div className="h-8 w-auto">Company 4</div>
-                        <div className="h-8 w-auto">Company 5</div>
                     </div>
                 </div>
             </div>

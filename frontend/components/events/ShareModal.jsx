@@ -10,7 +10,6 @@ export default function ShareModal({ isOpen, onClose, event }) {
 
     const handleShare = async () => {
         try {
-            // Aqui você implementaria a lógica para compartilhar
             toast.success('Event shared successfully!');
             onClose();
         } catch (error) {
@@ -43,7 +42,6 @@ export default function ShareModal({ isOpen, onClose, event }) {
                             Select followers
                         </label>
                         <div className="space-y-2 max-h-48 overflow-y-auto">
-                            {/* Lista de seguidores - exemplo */}
                             {['Alice', 'Bob', 'Charlie'].map((follower) => (
                                 <label
                                     key={follower}

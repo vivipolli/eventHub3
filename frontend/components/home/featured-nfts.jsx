@@ -3,14 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-// Sample NFT data - in a real app, this would come from an API
 const nfts = [
     {
         id: 1,
         title: "Web3 Summit 2023",
         creator: "Web3 Foundation",
         price: "0.85 ETH",
-        image: "/images/nft1.jpg", // You'll need to add these images to your public folder
+        image: "/images/nft1.jpg",
         attendees: 1240,
         date: "Oct 15, 2023",
         location: "Berlin, Germany",
@@ -55,15 +54,12 @@ const nfts = [
     }
 ];
 
-// NFT Card Component
 const NFTCard = ({ nft }) => {
     return (
         <div className="group relative bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            {/* NFT Image/Preview */}
             <div className={`h-64 bg-${nft.color}/10 relative overflow-hidden`}>
                 <div className={`absolute inset-0 bg-gradient-to-br from-${nft.color}/20 to-transparent`}></div>
 
-                {/* NFT Visual Representation */}
                 <div className="absolute inset-0 flex items-center justify-center">
                     <div className={`w-40 h-40 rounded-xl bg-white shadow-lg flex flex-col items-center justify-center p-4 rotate-3 border-2 border-${nft.color}/30`}>
                         <div className={`text-${nft.color} text-4xl font-bold mb-2`}>{nft.title.charAt(0)}{nft.title.split(' ')[1]?.charAt(0) || ''}</div>
@@ -80,7 +76,6 @@ const NFTCard = ({ nft }) => {
                 </div>
             </div>
 
-            {/* NFT Details */}
             <div className="p-5">
                 <div className="flex justify-between items-start mb-3">
                     <h3 className="font-bold text-lg text-foreground">{nft.title}</h3>
@@ -102,7 +97,6 @@ const NFTCard = ({ nft }) => {
                     {nft.location}
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex gap-2 mt-4">
                     <Link
                         href={`/marketplace/${nft.id}`}
@@ -121,7 +115,6 @@ const NFTCard = ({ nft }) => {
                 </div>
             </div>
 
-            {/* Hover Overlay with Quick Actions */}
             <div className="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
                 <div className="flex flex-col gap-3 p-6">
                     <Link
@@ -142,7 +135,6 @@ const NFTCard = ({ nft }) => {
 export default function FeaturedNFTs() {
     const [activeTab, setActiveTab] = useState('all');
 
-    // Filter NFTs based on active tab
     const filteredNFTs = activeTab === 'all'
         ? nfts
         : nfts.filter(nft => nft.rarity.toLowerCase() === activeTab);
@@ -165,8 +157,8 @@ export default function FeaturedNFTs() {
                     <button
                         onClick={() => setActiveTab('all')}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeTab === 'all'
-                                ? 'bg-foreground text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-foreground text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         All NFTs
@@ -174,8 +166,8 @@ export default function FeaturedNFTs() {
                     <button
                         onClick={() => setActiveTab('legendary')}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeTab === 'legendary'
-                                ? 'bg-accent text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-accent text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         Legendary
@@ -183,8 +175,8 @@ export default function FeaturedNFTs() {
                     <button
                         onClick={() => setActiveTab('epic')}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeTab === 'epic'
-                                ? 'bg-primary text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         Epic
@@ -192,8 +184,8 @@ export default function FeaturedNFTs() {
                     <button
                         onClick={() => setActiveTab('rare')}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeTab === 'rare'
-                                ? 'bg-secondary text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-secondary text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         Rare
@@ -201,8 +193,8 @@ export default function FeaturedNFTs() {
                     <button
                         onClick={() => setActiveTab('common')}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeTab === 'common'
-                                ? 'bg-gray-700 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-gray-700 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         Common

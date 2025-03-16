@@ -10,36 +10,34 @@ export default function EventCreationForm() {
     const { userData } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [eventData, setEventData] = useState({
-        id: Date.now().toString(), // Convertido para string
+        id: Date.now().toString(),
         title: '',
         description: '',
         date: '',
         time: '',
         location: '',
         category: 'DeFi',
-        price: '0', // Inicializado como string
+        price: '0',
         isPaid: false,
-        spotsAvailable: '100', // Inicializado como string
+        spotsAvailable: '100',
         organizer: {
             name: userData?.profile?.name || '',
-            id: userData?.addresses?.mainnet || '',
-            wallet: userData?.addresses?.mainnet || ''
+            id: userData?.addresses?.stx[0]?.address || '',
+            wallet: userData?.addresses?.stx[0]?.address || ''
         },
         status: 'upcoming',
         createdAt: new Date().toISOString(),
         ticketType: 'Standard',
-        totalSupply: '100', // Inicializado como string
-        mintPrice: '0', // Inicializado como string
+        totalSupply: '100',
+        mintPrice: '0',
     });
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    // Manipular mudanças nos campos do formulário
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
         if (type === 'number') {
-            // Garantir que valores numéricos sejam strings válidas
             const numValue = value === '' ? '0' : value;
             if (name === 'price') {
                 const isPaid = parseFloat(numValue) > 0;
@@ -76,7 +74,6 @@ export default function EventCreationForm() {
         }
     };
 
-    // Manipular upload de imagem
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -89,7 +86,6 @@ export default function EventCreationForm() {
         }
     };
 
-    // Enviar o formulário
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -102,18 +98,16 @@ export default function EventCreationForm() {
         toast.loading('Creating event and uploading to IPFS...', { id: 'event-creation' });
 
         try {
-            // Criar FormData para enviar imagem e dados do evento
             const formData = new FormData();
             formData.append('image', image);
 
-            // Preparar dados completos do evento para os metadados
             const completeEventData = {
                 ...eventData,
                 datetime: `${eventData.date}T${eventData.time}`,
                 organizer: {
-                    ...eventData.organizer,
-                    name: userData?.profile?.name || eventData.organizer.name,
-                    wallet: userData?.addresses?.mainnet || eventData.organizer.wallet
+                    name: 'Admin',
+                    id: userData?.addresses?.stx[0]?.address || '',
+                    wallet: userData?.addresses?.stx[0]?.address || ''
                 },
                 properties: {
                     eventId: eventData.id.toString(),
@@ -140,7 +134,6 @@ export default function EventCreationForm() {
 
             formData.append('eventData', JSON.stringify(completeEventData));
 
-            // Enviar para a API
             const response = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData
@@ -152,12 +145,8 @@ export default function EventCreationForm() {
             }
 
             const data = await response.json();
-            console.log('Metadata URL:', ipfsToHttp(data.metadataUrl));
-            console.log('Image URL:', ipfsToHttp(data.imageUrl));
 
-            // Opcional: Abrir os links automaticamente
             if (data.success) {
-                // Salvar evento com metadados
                 const savedEvent = await saveEvent(
                     completeEventData,
                     data.metadataUrl,
@@ -179,8 +168,6 @@ export default function EventCreationForm() {
     return (
         <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-6">
-
-                {/* Título do evento */}
                 <div className="group">
                     <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Event Title
@@ -197,7 +184,6 @@ export default function EventCreationForm() {
                     />
                 </div>
 
-                {/* Descrição */}
                 <div className="group">
                     <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Description
@@ -214,7 +200,6 @@ export default function EventCreationForm() {
                     />
                 </div>
 
-                {/* Data e Hora */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="group">
                         <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
@@ -248,7 +233,6 @@ export default function EventCreationForm() {
                     </div>
                 </div>
 
-                {/* Local */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Location
@@ -263,7 +247,6 @@ export default function EventCreationForm() {
                     />
                 </div>
 
-                {/* Categoria */}
                 <div className="group">
                     <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Category
@@ -290,7 +273,6 @@ export default function EventCreationForm() {
                     </select>
                 </div>
 
-                {/* Preço */}
                 <div className="group">
                     <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Price (STX)
@@ -310,7 +292,6 @@ export default function EventCreationForm() {
                     <p className="mt-2 text-sm text-gray-500">Set to 0 for free events</p>
                 </div>
 
-                {/* Vagas disponíveis */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Available Spots
@@ -326,22 +307,6 @@ export default function EventCreationForm() {
                     />
                 </div>
 
-                {/* Organizador */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Organizer Name
-                    </label>
-                    <input
-                        type="text"
-                        name="organizer.name"
-                        value={eventData.organizer.name}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        required
-                    />
-                </div>
-
-                {/* Imagem do evento */}
                 <div className="group">
                     <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-primary transition-colors">
                         Event Image

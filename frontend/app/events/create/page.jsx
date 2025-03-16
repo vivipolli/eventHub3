@@ -16,8 +16,6 @@ export default function CreateEventPage() {
         const maxAttempts = 10;
         const interval = setInterval(() => {
             attempts++;
-            console.log('Checking userData attempt:', attempts, userData);
-
             if (userData || attempts >= maxAttempts) {
                 clearInterval(interval);
                 setIsValidating(false);
@@ -32,7 +30,6 @@ export default function CreateEventPage() {
         return () => clearInterval(interval);
     }, [userData, router]);
 
-    // Mostrar loading enquanto valida
     if (isValidating) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
@@ -44,7 +41,6 @@ export default function CreateEventPage() {
         );
     }
 
-    // Não mostrar nada enquanto redireciona
     if (!userData || !Object.keys(userData).length) {
         return null;
     }

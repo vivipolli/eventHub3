@@ -2,18 +2,14 @@
 const EVENTS_KEY = 'event3_events'
 const EVENT_METADATA_KEY = 'event3_metadata'
 
-// Função auxiliar para verificar se estamos no navegador
 const isBrowser = typeof window !== 'undefined'
 
-// Função para salvar evento e seus metadados
 export const saveEvent = (eventData, metadataUrl, imageUrl) => {
   if (!isBrowser) return null
 
   try {
-    // Recuperar eventos existentes
     const events = JSON.parse(localStorage.getItem(EVENTS_KEY) || '[]')
 
-    // Criar novo evento com metadados
     const newEvent = {
       ...eventData,
       id: eventData.id || Date.now().toString(),
@@ -22,10 +18,8 @@ export const saveEvent = (eventData, metadataUrl, imageUrl) => {
       createdAt: new Date().toISOString(),
     }
 
-    // Adicionar novo evento
     events.push(newEvent)
 
-    // Salvar no localStorage
     localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
 
     return newEvent
@@ -35,7 +29,6 @@ export const saveEvent = (eventData, metadataUrl, imageUrl) => {
   }
 }
 
-// Função para recuperar um evento específico
 export const getEvent = eventId => {
   if (!isBrowser) return null
 
@@ -48,7 +41,6 @@ export const getEvent = eventId => {
   }
 }
 
-// Função para listar todos os eventos
 export const getAllEvents = () => {
   if (!isBrowser) return []
 
@@ -60,7 +52,6 @@ export const getAllEvents = () => {
   }
 }
 
-// Opcional: Função para limpar todos os eventos (útil para testes)
 export const clearEvents = () => {
   if (!isBrowser) return
 

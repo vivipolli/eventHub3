@@ -1,9 +1,11 @@
-const API_BASE_URL = 'https://api.testnet.hiro.so'
+const API_BASE_URL = process.env.NEXT_PUBLIC_HIRO_API_URL
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
+const CONTRACT_NAME = process.env.NEXT_PUBLIC_CONTRACT_NAME
 
 /**
- * Função para obter NFTs de um endereço
- * @param {string} address - Endereço Stacks
- * @returns {Promise<Array>} - Lista de NFTs
+ * Function to get NFTs for a given address
+ * @param {string} address - Stacks address
+ * @returns {Promise<Array>} - List of NFTs
  */
 export async function getNftsForAddress(address) {
   try {
@@ -20,9 +22,7 @@ export async function getNftsForAddress(address) {
     const nfts = data.results || []
 
     const contractNfts = nfts.filter(nft =>
-      nft.asset_identifier.includes(
-        'ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK.nft-ticket'
-      )
+      nft.asset_identifier.includes(`${CONTRACT_ADDRESS}.${CONTRACT_NAME}`)
     )
 
     const enrichedNfts = await Promise.all(
@@ -30,8 +30,8 @@ export async function getNftsForAddress(address) {
         try {
           const tokenId = nft.value.repr.replace('u', '')
           const tokenUri = await getNftTokenUri(
-            'ST3GJH07ZBJ6F385P8JP7YCS03E3HH6FENAZ5YBPK',
-            'nft-ticket',
+            CONTRACT_ADDRESS,
+            CONTRACT_NAME,
             tokenId,
             address
           )
@@ -45,8 +45,6 @@ export async function getNftsForAddress(address) {
         }
       })
     )
-
-    console.log('Enriched NFTs:', enrichedNfts)
 
     return enrichedNfts
   } catch (error) {
@@ -121,30 +119,18 @@ export function convertIpfsUrl(ipfsUrl) {
     return null
   }
 
-  // Verificar se é uma URL IPFS
   if (ipfsUrl.startsWith('ipfs://')) {
-    // Extrair o hash IPFS (remover 'ipfs://')
     const ipfsHash = ipfsUrl.replace('ipfs://', '')
-    console.log(
-      `Converting IPFS URL: ipfs://${ipfsHash} to https://ipfs.io/ipfs/${ipfsHash}`
-    )
-    // Retornar a URL do gateway IPFS
     return `https://ipfs.io/ipfs/${ipfsHash}`
   }
 
-  // Se já for uma URL HTTP ou HTTPS, retornar como está
   if (ipfsUrl.startsWith('http://') || ipfsUrl.startsWith('https://')) {
     return ipfsUrl
   }
 
-  // Se for apenas o hash IPFS, adicionar o prefixo do gateway
   if (ipfsUrl.match(/^[a-zA-Z0-9]{46}$/)) {
-    console.log(
-      `Converting IPFS hash: ${ipfsUrl} to https://ipfs.io/ipfs/${ipfsUrl}`
-    )
     return `https://ipfs.io/ipfs/${ipfsUrl}`
   }
 
-  // Caso contrário, retornar a URL original
   return ipfsUrl
 }

@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
 import { getEvent } from '@/services/eventService';
 
-// Componentes
 import EventHeader from '@/components/events/EventHeader';
 import EventContent from '@/components/events/EventContent';
 import EventSidebar from '@/components/events/EventSidebar';
@@ -53,9 +52,7 @@ export default function EventPage({ params }) {
     const router = useRouter();
 
     useEffect(() => {
-        console.log('Fetching event with ID:', eventId); // Debug log
         const storedEvent = getEvent(eventId);
-        console.log('Fetched event:', storedEvent); // Debug log
         if (storedEvent) {
             setEvent(storedEvent);
         }
@@ -108,6 +105,7 @@ export default function EventPage({ params }) {
     return (
         <div className="min-h-screen bg-white">
             <EventHeader event={event} />
+
 
             <div className="container mx-auto px-6 py-12">
                 <div className="flex flex-col lg:flex-row gap-12">
