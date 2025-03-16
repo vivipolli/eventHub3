@@ -11,6 +11,7 @@ EventHub3 is a decentralized event management platform built on the Stacks block
 - [Smart Contracts](#smart-contracts)
 - [Frontend Integration](#frontend-integration)
 - [Environment Variables](#environment-variables)
+- [Future Implementations](#future-implementations)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -40,14 +41,14 @@ To get started with EventHub3, follow these steps:
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/eventhub3.git
-   cd eventhub3
+   git clone https://github.com/vivipolli/eventHub3.git
+   cd frontend
    ```
 
 2. **Install dependencies**:
 
    ```bash
-   npm install
+   yarn install
    ```
 
 3. **Set up environment variables**:
@@ -56,7 +57,7 @@ To get started with EventHub3, follow these steps:
 4. **Run the development server**:
 
    ```bash
-   npm run dev
+   yarn run dev
    ```
 
 5. **Open your browser**:
@@ -89,3 +90,20 @@ NEXT_PUBLIC_CONTRACT_NAME=nft-ticket
 NEXT_PUBLIC_HIRO_API_URL=https://api.testnet.hiro.so
 
 ```
+
+## Future Implementations 🚀
+
+### Short-term Improvements
+
+- **Enhanced UI/UX**: Improved interface design and user experience features
+- **Centralized Database Integration**: Adding database support to store event details and user preferences
+- **NFT Marketplace Integration**: Implementing a marketplace with contract functionality for collection NFT issuance
+- **Social Login**: Adding the ability to log in with social media accounts
+- **Follow Functionality**: Enabling users to follow event organizers and other attendees
+
+### Long-term Vision
+
+- **Decentralized Social Features**: Building a fully decentralized social layer for greater interaction between participants
+- **Mobile Application**: Developing native mobile apps for iOS and Android
+- **Multi-chain Support**: Expanding beyond Stacks to support other blockchain networks
+- **DAO Governance**: Implementing decentralized autonomous organization features for community-driven event management

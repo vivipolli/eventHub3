@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import { getAllEvents } from '@/services/eventService';
 import EventCard from '@/components/events/EventCard';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+
 const categories = [
     { id: 'all', name: 'All Events', count: 42 },
     { id: 'tech', name: 'Technology', count: 15 },
@@ -13,11 +16,31 @@ const categories = [
 
 export default function EventsPage() {
     const [events, setEvents] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [isLoading, setIsLoading] = useState(true);
+    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
-        const storedEvents = getAllEvents();
-        setEvents(storedEvents);
+        const loadEvents = async () => {
+            setIsLoading(true);
+            try {
+                const storedEvents = getAllEvents();
+                setEvents(storedEvents);
+            } catch (error) {
+                console.error("Error loading events:", error);
+            } finally {
+                setTimeout(() => {
+                    setIsLoading(false);
+                }, 1000);
+            }
+        };
+
+        loadEvents();
     }, []);
+
+    const filteredEvents = selectedCategory === 'all'
+        ? events
+        : events.filter(event => event.category?.toLowerCase() === selectedCategory);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -64,9 +87,11 @@ export default function EventsPage() {
                                 {categories.map(category => (
                                     <button
                                         key={category.id}
-                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-left"
+                                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-left ${selectedCategory === category.id ? 'bg-gray-50 text-primary' : 'text-gray-700'
+                                            }`}
+                                        onClick={() => setSelectedCategory(category.id)}
                                     >
-                                        <span className="text-gray-700">{category.name}</span>
+                                        <span>{category.name}</span>
                                         <span className="text-sm text-gray-500">{category.count}</span>
                                     </button>
                                 ))}
@@ -122,7 +147,11 @@ export default function EventsPage() {
                     <div className="flex-1">
                         {/* Sort Options */}
                         <div className="flex justify-between items-center mb-6">
-                            <p className="text-gray-600">Showing 42 events</p>
+                            <p className="text-gray-600">
+                                {isLoading
+                                    ? "Loading events..."
+                                    : `Showing ${filteredEvents.length} events`}
+                            </p>
                             <select className="px-3 py-2 border border-gray-200 rounded-lg">
                                 <option>Most Popular</option>
                                 <option>Newest First</option>
@@ -131,31 +160,57 @@ export default function EventsPage() {
                             </select>
                         </div>
 
-                        {/* Events Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {events.map(event => (
-                                <EventCard key={event.id} event={event} />
-                            ))}
-                        </div>
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                <p className="ml-4 text-gray-600">Loading events...</p>
+                            </div>
+                        ) : filteredEvents.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filteredEvents.map(event => (
+                                    <EventCard key={event.id} event={event} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+                                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">No events found</h3>
+                                <p className="text-gray-600 mb-6">
+                                    {isAuthenticated
+                                        ? "Why not create the first event in this category?"
+                                        : "You need to connect your wallet to create and discover events."}
+                                </p>
+                                {isAuthenticated && (
+                                    <Link href="/events/create" className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block">
+                                        Create Event
+                                    </Link>
+                                )}
+                            </div>
+                        )}
 
-                        {/* Pagination */}
-                        <div className="mt-12 flex justify-center">
-                            <nav className="flex items-center space-x-2">
-                                <button className="p-2 rounded-lg hover:bg-gray-100">
-                                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                                <button className="px-4 py-2 rounded-lg bg-primary text-white">1</button>
-                                <button className="px-4 py-2 rounded-lg hover:bg-gray-100">2</button>
-                                <button className="px-4 py-2 rounded-lg hover:bg-gray-100">3</button>
-                                <button className="p-2 rounded-lg hover:bg-gray-100">
-                                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-                            </nav>
-                        </div>
+                        {!isLoading && filteredEvents.length > 0 && (
+                            <div className="mt-12 flex justify-center">
+                                <nav className="flex items-center space-x-2">
+                                    <button className="p-2 rounded-lg hover:bg-gray-100">
+                                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    <button className="px-4 py-2 rounded-lg bg-primary text-white">1</button>
+                                    <button className="px-4 py-2 rounded-lg hover:bg-gray-100">2</button>
+                                    <button className="px-4 py-2 rounded-lg hover:bg-gray-100">3</button>
+                                    <button className="p-2 rounded-lg hover:bg-gray-100">
+                                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </nav>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
