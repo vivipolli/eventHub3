@@ -16,11 +16,10 @@ EventHub3 is a decentralized event platform that eliminates ticket fraud, enhanc
 
 ## Features ✨
 
-- **Decentralized Ticketing**: Issue and manage event tickets on the blockchain.
-- **NFT Integration**: Mint NFTs as event tickets, providing a unique and verifiable proof of attendance.
+- **Decentralized NFT Ticketing**: Issue and manage event tickets as NFTs on the blockchain, providing a unique and verifiable proof of attendance.
+- **Collection NFT Marketplace**: A dedicated marketplace for trading and showcasing event-related collection NFTs, enhancing visibility and engagement within the ecosystem.
 - **User Profiles**: Manage user profiles with NFT collections and event history.
-- **Secure Transactions**: Utilize Clarity smart contracts for secure and transparent transactions.
-- **Responsive Design**: Built with Next.js for a seamless user experience across devices.
+- **Web3 Event Creation**: Facilitate the creation of Web3 events on the platform, ensuring community engagement and secure ticket sales through Clarity smart contracts.
 
 ## Tech Stack 🛠️
 
