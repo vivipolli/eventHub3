@@ -14,19 +14,6 @@ EventHub3 is a decentralized event platform that eliminates ticket fraud, enhanc
 
 - **Ecosystem and Community**: Stacks has a growing ecosystem of developers and projects, providing a rich environment for collaboration and innovation. By being part of this ecosystem, EventHub3 can leverage shared resources and community support to enhance its platform.
 
-## Table of Contents 📚
-
-- [Introduction](#introduction)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Smart Contracts](#smart-contracts)
-- [Frontend Integration](#frontend-integration)
-- [Environment Variables](#environment-variables)
-- [Future Implementations](#future-implementations)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Features ✨
 
 - **Decentralized Ticketing**: Issue and manage event tickets on the blockchain.
@@ -47,7 +34,7 @@ EventHub3 is a decentralized event platform that eliminates ticket fraud, enhanc
 To explore and test EventHub3, follow these steps:
 
 1. **Access the Demo Platform**:
-   Visit our live demo at [EventHub3 Demo](https://your-demo-link.com) to experience the platform in action.
+   Visit our live demo at [EventHub3 Link Demo](https://event-hub3.vercel.app/) to experience the platform in action.
 
 2. **Install the Leather Wallet**:
    To interact with the Stacks blockchain, you'll need the Leather wallet by Hiro. Follow these steps to install it:
