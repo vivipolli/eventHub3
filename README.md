@@ -28,6 +28,7 @@ EventHub3 is a decentralized event platform that eliminates ticket fraud, enhanc
 - **Clarity**: A smart contract language for the Stacks blockchain, ensuring predictable and secure contract behavior.
 - **Stacks.js**: A JavaScript library for interacting with the Stacks blockchain.
 - **Next.js**: A React framework for building fast and scalable web applications.
+- **Pinata**: For storing and retrieving images and metadata for NFTs.
 
 ## Getting Started 🚀
 
