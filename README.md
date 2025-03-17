@@ -3,6 +3,7 @@
 ## Introduction 🌟
 
 EventHub3 is a decentralized event platform that eliminates ticket fraud, enhances attendee engagement, and builds on-chain reputation. By utilizing the Stacks blockchain, which uniquely leverages Bitcoin as its secure base layer, EventHub3 ensures that all transactions are not only secure and transparent but also benefit from Bitcoin's unparalleled security and stability.
+[Demo Video](https://embed.app.guidde.com/playbooks/2RvXATnHaTVMWrEL8QTGb7)
 
 ### Why Stacks and Bitcoin?
 
